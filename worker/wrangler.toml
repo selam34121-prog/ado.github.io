@@ -1,0 +1,6 @@
+name = "ado-gemini-proxy"
+main = "gemini-proxy.js"
+compatibility_date = "2026-01-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://selam34121-prog.github.io"
