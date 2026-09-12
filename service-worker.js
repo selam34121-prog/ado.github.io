@@ -1,1 +1,21 @@
-const CACHE='ado-v5';const ASSETS=['./','index.html','css/main.css','css/components.css','css/animations.css','css/themes.css','css/fixes.css','js/app.js','js/mobile.js','js/storage.js','js/ui.js','js/commands.js','js/expenses.js','js/subscriptions.js','js/notes.js','js/tools.js','js/ai.js','js/settings.js','assets/icon.svg'];self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE).map(x=>caches.delete(x))))));self.addEventListener('fetch',e=>{if(e.request.method==='GET')e.respondWith(fetch(e.request).then(r=>{const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c));return r}).catch(()=>caches.match(e.request).then(r=>r||caches.match('./'))))});
+const CACHE='ado-v6';
+const ASSETS=['./','index.html','manifest.json','css/main.css','css/components.css','css/animations.css','css/themes.css','css/fixes.css','js/app.js','js/mobile.js','js/update.js','js/storage.js','js/ui.js','js/commands.js','js/expenses.js','js/subscriptions.js','js/notes.js','js/tools.js','js/ai.js','js/settings.js','js/browser.js','assets/icon.svg'];
+
+self.addEventListener('install',event=>event.waitUntil(
+ caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())
+));
+
+self.addEventListener('activate',event=>event.waitUntil(
+ caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())
+));
+
+self.addEventListener('fetch',event=>{
+ const request=event.request;
+ if(request.method!=='GET'||new URL(request.url).origin!==self.location.origin)return;
+ event.respondWith(fetch(request,{cache:'no-store'}).then(response=>{
+  if(response.ok)caches.open(CACHE).then(cache=>cache.put(request,response.clone()));
+  return response;
+ }).catch(()=>caches.match(request).then(cached=>cached||caches.match('./'))));
+});
+
+self.addEventListener('message',event=>{if(event.data==='YENILE')self.skipWaiting()});
