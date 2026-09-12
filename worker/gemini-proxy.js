@@ -42,7 +42,8 @@ async function auth(request,env,path,headers){
   return json({token:await createToken(user,env.SESSION_SECRET),email},201,headers);
  }
  const user=await env.DB.prepare('SELECT id,email,password_hash,salt FROM users WHERE email=?').bind(email).first();
- if(!user||await passwordHash(password,base64ToBytes(user.salt))!==user.password_hash)return json({error:'E-posta veya parola yanlış.'},401,headers);
+ if(!user){const count=await env.DB.prepare('SELECT COUNT(*) AS total FROM users').first();if(Number(count.total)===0)return json({error:'Henüz hesap oluşturulmamış. Aşağıdaki İlk hesabı oluştur formunu kullan.'},409,headers);return json({error:'E-posta veya parola yanlış.'},401,headers)}
+ if(await passwordHash(password,base64ToBytes(user.salt))!==user.password_hash)return json({error:'E-posta veya parola yanlış.'},401,headers);
  return json({token:await createToken(user,env.SESSION_SECRET),email:user.email},200,headers);
 }
 
