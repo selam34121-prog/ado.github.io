@@ -1,4 +1,4 @@
-const CACHE='ado-v9';
+const CACHE='ado-v10';
 const ASSETS=['./','index.html','manifest.json','css/main.css','css/components.css','css/animations.css','css/themes.css','css/fixes.css','js/app.js','js/mobile.js','js/update.js','js/storage.js','js/ui.js','js/commands.js','js/expenses.js','js/subscriptions.js','js/notes.js','js/tools.js','js/ai.js','js/settings.js','js/browser.js','assets/icon.svg'];
 
 self.addEventListener('install',event=>event.waitUntil(
