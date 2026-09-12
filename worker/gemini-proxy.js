@@ -8,7 +8,7 @@ async function sha256(value){return hex(new Uint8Array(await crypto.subtle.diges
 
 async function passwordHash(password,salt){
  const material=await crypto.subtle.importKey('raw',encoder.encode(password),'PBKDF2',false,['deriveBits']);
- const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:180000,hash:'SHA-256'},material,256);
+ const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},material,256);
  return bytesToBase64(new Uint8Array(bits));
 }
 
