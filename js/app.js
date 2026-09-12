@@ -8,8 +8,10 @@ import{renderSettings,applySettings}from'./settings.js';
 import{renderAI}from'./ai.js';
 import{renderBrowser}from'./browser.js';
 import{openPalette}from'./commands.js';
+import{renderAccount}from'./account.js';
+import{initializeSync}from'./sync.js';
 
-const pages=[['dashboard','◈','Ana Panel'],['browser','⌕','Tarayıcı Asistanı'],['expenses','◒','Harcamalar'],['subscriptions','◇','Abonelikler'],['tools','⌘','Bilgisayar Araçları'],['notes','▤','Notlar'],['command','⌁','Komuta Merkezi'],['ai','✦','Yapay Zekâ Asistanı'],['settings','⚙','Ayarlar']];
+const pages=[['dashboard','◈','Ana Panel'],['browser','⌕','Tarayıcı Asistanı'],['expenses','◒','Harcamalar'],['subscriptions','◇','Abonelikler'],['tools','⌘','Bilgisayar Araçları'],['notes','▤','Notlar'],['command','⌁','Komuta Merkezi'],['ai','✦','Yapay Zekâ Asistanı'],['account','◎','Hesap'],['settings','⚙','Ayarlar']];
 const view=$('#view');
 
 async function dashboard(){
@@ -27,7 +29,7 @@ async function navigate(page){
  location.hash=page;document.title=`ADO — ${pages.find(x=>x[0]===page)?.[2]||'Komuta Merkezi'}`;
  document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.page===page));
  $('#sidebar').classList.remove('open');
- if(page==='dashboard')await dashboard();if(page==='browser')await renderBrowser(view);if(page==='expenses')await renderExpenses(view);if(page==='subscriptions')await renderSubscriptions(view);if(page==='tools')renderTools(view);if(page==='notes')await renderNotes(view);if(page==='ai')renderAI(view);if(page==='settings')renderSettings(view);if(page==='command'){await openPalette(navigate);navigate('dashboard')}
+ if(page==='dashboard')await dashboard();if(page==='browser')await renderBrowser(view);if(page==='expenses')await renderExpenses(view);if(page==='subscriptions')await renderSubscriptions(view);if(page==='tools')renderTools(view);if(page==='notes')await renderNotes(view);if(page==='ai')renderAI(view);if(page==='account')renderAccount(view);if(page==='settings')renderSettings(view);if(page==='command'){await openPalette(navigate);navigate('dashboard')}
 }
 
 function quickAdd(){
@@ -39,10 +41,10 @@ async function start(){
  applySettings();await initDB();
  $('#nav').innerHTML=pages.map(([id,icon,label])=>`<button class="nav-item" data-page="${id}"><span class="nav-icon">${icon}</span><span class="nav-label">${label}</span></button>`).join('');
  document.querySelectorAll('[data-page]').forEach(x=>x.onclick=()=>navigate(x.dataset.page));
- document.addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(action==='palette')openPalette(navigate);if(action==='quick-add')quickAdd();if(action==='settings')navigate('settings');if(action==='menu')$('#sidebar').classList.toggle('open');if(action==='collapse')$('#app').classList.toggle('collapsed');if(action==='notifications')toast('Yeni bildirim yok')});
+ document.addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(action==='palette')openPalette(navigate);if(action==='quick-add')quickAdd();if(action==='account')navigate('account');if(action==='menu')$('#sidebar').classList.toggle('open');if(action==='collapse')$('#app').classList.toggle('collapsed');if(action==='notifications')toast('Yeni bildirim yok')});
  document.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;if(e.key==='Escape')$('#modal-root').replaceChildren();if(e.ctrlKey&&e.key.toLowerCase()==='k'){e.preventDefault();openPalette(navigate)}if(e.ctrlKey&&!e.shiftKey&&e.key.toLowerCase()==='n'){e.preventDefault();newNote(()=>navigate('notes'))}if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='e'){e.preventDefault();expenseModal(()=>navigate('expenses'))}if(e.ctrlKey&&e.key==='/'){e.preventDefault();modal('Klavye kısayolları','<div class="list"><div class="list-item">Ctrl K <span class="meta">Komuta merkezi</span></div><div class="list-item">Ctrl N <span class="meta">Yeni not</span></div><div class="list-item">Ctrl Shift E <span class="meta">Yeni harcama</span></div><div class="list-item">Esc <span class="meta">Pencereyi kapat</span></div></div>')}});
  setInterval(()=>{const clock=$('#clock');if(clock)clock.textContent=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});const big=$('#big-time');if(big)big.textContent=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})},1000);
- await navigate(location.hash.slice(1)||'dashboard');
+ initializeSync();await navigate(location.hash.slice(1)||'dashboard');
  if('serviceWorker'in navigator)navigator.serviceWorker.register('./service-worker.js');
 }
 

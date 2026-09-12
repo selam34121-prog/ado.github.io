@@ -4,3 +4,8 @@ compatibility_date = "2026-01-01"
 
 [vars]
 ALLOWED_ORIGIN = "https://selam34121-prog.github.io"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ado-dashboard-data"
+database_id = "e40c0368-0756-4bc6-985a-396cd23f8f70"
