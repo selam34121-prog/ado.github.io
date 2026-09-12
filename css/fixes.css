@@ -1,3 +1,12 @@
-.collapse{position:absolute;top:24px;right:-20px;z-index:4;margin-left:0;background:var(--panel2)}
-.collapsed .collapse{display:grid;transform:rotate(180deg)}
-@media(max-width:900px){.collapse{display:none!important}}
+.app{transition:grid-template-columns .3s var(--ease)}
+.sidebar{overflow:visible}
+.collapse{position:absolute;top:24px;right:14px;z-index:4;margin-left:0;background:var(--panel2);transition:top .3s var(--ease),right .3s var(--ease),transform .3s var(--ease),background .18s var(--ease)}
+.sidebar nav{transition:transform .3s var(--ease)}
+.brand div,.nav-label,.sidebar-foot span:last-child{white-space:nowrap;overflow:hidden;max-width:160px;opacity:1;transform:translateX(0);transition:max-width .26s var(--ease),opacity .18s var(--ease),transform .26s var(--ease)}
+.nav-item{transition:gap .3s var(--ease),background .2s var(--ease),color .2s var(--ease),transform .2s var(--ease)}
+.collapsed .collapse{display:grid;top:76px;right:18px;transform:rotate(180deg)}
+.collapsed .sidebar nav{transform:translateY(42px)}
+.collapsed .sidebar .brand div{display:flex;max-width:0;opacity:0;transform:translateX(-12px)}
+.collapsed .sidebar .nav-label,.collapsed .sidebar-foot span:last-child{display:inline-block;max-width:0;opacity:0;transform:translateX(-12px)}
+.collapsed .nav-item{gap:0;justify-content:center}
+@media(max-width:900px){.collapse{display:none!important}.sidebar nav{transform:none!important}}
