@@ -58,6 +58,38 @@ async function sync(request,env,headers){
  return json({ok:true,updatedAt},200,headers);
 }
 
+async function shares(request,env,path,headers){
+ const token=path.split('/')[2]||'';
+ if(request.method==='POST'&&path==='/shares'){
+  const body=await request.json(),notes=Array.isArray(body.notes)?body.notes:[];
+  if(!notes.length||notes.length>100)return json({error:'Paylaşmak için 1-100 not seç.'},400,headers);
+  const clean=notes.map(note=>({id:String(note.id||crypto.randomUUID()).slice(0,80),title:String(note.title||'Başlıksız').slice(0,300),content:String(note.content||'').slice(0,100000),updatedAt:Number(note.updatedAt)||Date.now()}));
+  const payload=JSON.stringify(clean);
+  if(payload.length>1000000)return json({error:'Seçilen notlar paylaşım sınırını aşıyor.'},413,headers);
+  const shareToken=base64url(crypto.getRandomValues(new Uint8Array(24))),now=Date.now();
+  await env.DB.prepare('INSERT INTO shared_notes (token,payload,created_at,updated_at) VALUES (?,?,?,?)').bind(shareToken,payload,now,now).run();
+  return json({token:shareToken,updatedAt:now},201,headers);
+ }
+ if(!/^[A-Za-z0-9_-]{32}$/.test(token))return json({error:'Paylaşım bağlantısı geçersiz.'},404,headers);
+ if(request.method==='GET'){
+  const row=await env.DB.prepare('SELECT payload,updated_at FROM shared_notes WHERE token=?').bind(token).first();
+  return row?json({notes:JSON.parse(row.payload),updatedAt:row.updated_at},200,headers):json({error:'Paylaşım bulunamadı.'},404,headers);
+ }
+ if(request.method==='PUT'){
+  const row=await env.DB.prepare('SELECT token FROM shared_notes WHERE token=?').bind(token).first();
+  if(!row)return json({error:'Paylaşım bulunamadı.'},404,headers);
+  const body=await request.json(),notes=Array.isArray(body.notes)?body.notes:[];
+  if(!notes.length||notes.length>100)return json({error:'Paylaşım en az bir not içermeli.'},400,headers);
+  const clean=notes.map(note=>({id:String(note.id||'').slice(0,80),title:String(note.title||'Başlıksız').slice(0,300),content:String(note.content||'').slice(0,100000),updatedAt:Number(note.updatedAt)||Date.now()}));
+  const payload=JSON.stringify(clean);
+  if(payload.length>1000000)return json({error:'Notlar paylaşım sınırını aşıyor.'},413,headers);
+  const updatedAt=Date.now();
+  await env.DB.prepare('UPDATE shared_notes SET payload=?,updated_at=? WHERE token=?').bind(payload,updatedAt,token).run();
+  return json({ok:true,updatedAt},200,headers);
+ }
+ return json({error:'Bulunamadı.'},404,headers);
+}
+
 async function gemini(request,env,headers){
  const{message,context,history=[]}=await request.json();
  if(!message||message.length>4000)return json({error:'Geçersiz mesaj.'},400,headers);
@@ -79,12 +111,13 @@ Kullanıcı: ${message}`} ]});
 }
 
 export default{async fetch(request,env){
- const headers={'Access-Control-Allow-Origin':env.ALLOWED_ORIGIN||'*','Access-Control-Allow-Headers':'content-type,authorization','Access-Control-Allow-Methods':'GET,POST,PUT,OPTIONS','Content-Type':'application/json'};
+ const headers={'Access-Control-Allow-Origin':env.ALLOWED_ORIGIN||'*','Access-Control-Allow-Headers':'content-type,authorization','Access-Control-Allow-Methods':'GET,POST,PUT,OPTIONS','Content-Type':'application/json','Cache-Control':'no-store','Referrer-Policy':'no-referrer'};
  if(request.method==='OPTIONS')return new Response(null,{headers});
  const path=new URL(request.url).pathname;
  try{
   if(['/auth/register','/auth/login'].includes(path)&&request.method==='POST')return await auth(request,env,path,headers);
   if(path==='/sync'&&['GET','PUT'].includes(request.method))return await sync(request,env,headers);
+  if((path==='/shares'||path.startsWith('/shares/'))&&['GET','POST','PUT'].includes(request.method))return await shares(request,env,path,headers);
   if((path==='/'||path==='/ai')&&request.method==='POST')return await gemini(request,env,headers);
   return json({error:'Bulunamadı.'},404,headers);
  }catch(error){console.error(error);return json({error:'İstek işlenemedi.'},500,headers)}

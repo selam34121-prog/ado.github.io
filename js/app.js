@@ -10,6 +10,7 @@ import{renderBrowser}from'./browser.js';
 import{openPalette}from'./commands.js';
 import{renderAccount}from'./account.js';
 import{initializeSync,signedIn}from'./sync.js';
+import{renderSharedNotes}from'./sharing.js';
 
 const pages=[['dashboard','◈','Ana Panel'],['browser','⌕','Tarayıcı Asistanı'],['expenses','◒','Harcamalar'],['subscriptions','◇','Abonelikler'],['tools','⌘','Bilgisayar Araçları'],['notes','▤','Notlar'],['command','⌁','Komuta Merkezi'],['ai','✦','Yapay Zekâ Asistanı'],['account','◎','Hesap'],['settings','⚙','Ayarlar']];
 const view=$('#view');
@@ -40,6 +41,7 @@ function quickAdd(){
 
 async function start(){
  applySettings();await initDB();
+ const shareToken=new URLSearchParams(location.search).get('share');if(shareToken){await renderSharedNotes(view,shareToken);return}
  $('#nav').innerHTML=pages.map(([id,icon,label])=>`<button class="nav-item" data-page="${id}"><span class="nav-icon">${icon}</span><span class="nav-label">${label}</span></button>`).join('');
  document.querySelectorAll('[data-page]').forEach(x=>x.onclick=()=>navigate(x.dataset.page));
  document.addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(action==='palette')openPalette(navigate);if(action==='quick-add')quickAdd();if(action==='account')navigate('account');if(action==='menu')$('#sidebar').classList.toggle('open');if(action==='collapse')$('#app').classList.toggle('collapsed');if(action==='notifications')toast('Yeni bildirim yok')});
