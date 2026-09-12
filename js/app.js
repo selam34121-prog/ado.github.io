@@ -9,10 +9,11 @@ import{renderAI}from'./ai.js';
 import{renderBrowser}from'./browser.js';
 import{openPalette}from'./commands.js';
 import{renderAccount}from'./account.js';
-import{initializeSync}from'./sync.js';
+import{initializeSync,signedIn}from'./sync.js';
 
 const pages=[['dashboard','◈','Ana Panel'],['browser','⌕','Tarayıcı Asistanı'],['expenses','◒','Harcamalar'],['subscriptions','◇','Abonelikler'],['tools','⌘','Bilgisayar Araçları'],['notes','▤','Notlar'],['command','⌁','Komuta Merkezi'],['ai','✦','Yapay Zekâ Asistanı'],['account','◎','Hesap'],['settings','⚙','Ayarlar']];
 const view=$('#view');
+function accountIndicator(){const active=signedIn(),avatar=document.querySelector('.avatar');document.body.classList.toggle('account-connected',active);if(avatar){avatar.innerHTML=active?'AK <span style="color:#35d890">●</span>':'AK';avatar.title=active?'Hesap bağlı':'Giriş yapılmadı'}const label=document.querySelector('.sidebar-foot span:last-child');if(label)label.textContent=active?'Hesap bağlı · Eşitleniyor':'Bulut eşitleme hazır'}
 
 async function dashboard(){
  const[expenses,subs,notes,history]=await Promise.all(['expenses','subscriptions','notes','commandHistory'].map(all));
@@ -44,7 +45,7 @@ async function start(){
  document.addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(action==='palette')openPalette(navigate);if(action==='quick-add')quickAdd();if(action==='account')navigate('account');if(action==='menu')$('#sidebar').classList.toggle('open');if(action==='collapse')$('#app').classList.toggle('collapsed');if(action==='notifications')toast('Yeni bildirim yok')});
  document.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;if(e.key==='Escape')$('#modal-root').replaceChildren();if(e.ctrlKey&&e.key.toLowerCase()==='k'){e.preventDefault();openPalette(navigate)}if(e.ctrlKey&&!e.shiftKey&&e.key.toLowerCase()==='n'){e.preventDefault();newNote(()=>navigate('notes'))}if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='e'){e.preventDefault();expenseModal(()=>navigate('expenses'))}if(e.ctrlKey&&e.key==='/'){e.preventDefault();modal('Klavye kısayolları','<div class="list"><div class="list-item">Ctrl K <span class="meta">Komuta merkezi</span></div><div class="list-item">Ctrl N <span class="meta">Yeni not</span></div><div class="list-item">Ctrl Shift E <span class="meta">Yeni harcama</span></div><div class="list-item">Esc <span class="meta">Pencereyi kapat</span></div></div>')}});
  setInterval(()=>{const clock=$('#clock');if(clock)clock.textContent=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});const big=$('#big-time');if(big)big.textContent=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})},1000);
- initializeSync();await navigate(location.hash.slice(1)||'dashboard');
+ window.addEventListener('ado:auth-changed',accountIndicator);accountIndicator();initializeSync();await navigate(location.hash.slice(1)||'dashboard');
  if('serviceWorker'in navigator)navigator.serviceWorker.register('./service-worker.js');
 }
 
