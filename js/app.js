@@ -5,7 +5,7 @@ import{renderSubscriptions,subscriptionModal}from'./subscriptions.js';
 import{renderNotes,newNote}from'./notes.js';
 import{renderTools}from'./tools.js';
 import{renderSettings,applySettings}from'./settings.js';
-import{renderAI}from'./ai.js';
+import{renderAI,stopAIListening}from'./ai.js';
 import{renderBrowser}from'./browser.js';
 import{openPalette}from'./commands.js';
 import{renderAccount}from'./account.js';
@@ -28,6 +28,7 @@ async function dashboard(){
 }
 
 async function navigate(page){
+ if(page!=='ai')stopAIListening();
  location.hash=page;document.title=`ADO — ${pages.find(x=>x[0]===page)?.[2]||'Komuta Merkezi'}`;
  document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.page===page));
  $('#sidebar').classList.remove('open');
